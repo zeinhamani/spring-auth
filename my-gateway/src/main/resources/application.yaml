@@ -1,0 +1,51 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:8100"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+            allowedHeaders:
+                - "*"
+            allowCredentials: true
+      routes:
+        - id: user-secure
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/users/sec/**
+          filters:
+            - name: AuthorizationHeaderFilter
+        - id: user-auth
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/users/auth/**
+
+        - id: try-secure
+          uri: lb://TRY-SERVICE
+          predicates:
+            - Path=/tries/**
+          filters:
+            - name: AuthorizationHeaderFilter
+
+token:
+  secret: 645367566B5970337336763979244226452948404D6351655468576D5A713474
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    hostname: localhost

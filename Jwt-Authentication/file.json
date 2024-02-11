@@ -1,0 +1,15 @@
+{
+  "agencyName":"SalimaVoyage",
+  "logo":"photos/agencies/1",
+  "phoneNums":[234512,237865],
+  "numTel":"voyage@salima.com",
+  "password":"salima"
+},
+{
+  "firstname":"Bakar",
+  "lastname":"Mamy",
+  "genre":"homme",
+  "numTel":"bakar@bakar.com",
+  "password":"bakar"
+
+}
