@@ -1,25 +1,50 @@
 package com.zeinDev.tryservice.configuration;
+
 import com.sun.security.auth.UserPrincipal;
+ // Import your JWT service
+import com.zeinDev.tryservice.service.JwtService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServerHttpRequest;
-import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
-import org.springframework.security.core.context.SecurityContextHolder;
 import java.security.Principal;
 import java.util.Map;
+
+@Component
 public class UserHandshakeHandler extends DefaultHandshakeHandler {
+    private final JwtService jwtService;
 
-    @Override
+    public UserHandshakeHandler(JwtService jwtService) {
+        this.jwtService = jwtService;
+    }
+
+
     protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.isAuthenticated()) {
-            // Assuming the principal name is what you want to use to identify the user.
-            return new UserPrincipal(authentication.getName());
-        } else {
-            // Handle the case where there is no authentication.
-            // This could be returning null or throwing an exception based on your security requirements.
-            return null; // or throw new SomeException("User is not authenticated.");
+        String token = extractToken(request);
+        if (token != null && jwtService != null) {
+            try {
+                if (jwtService.extractUsername(token) != null) {
+                    // Token is valid and username is extracted
+                    return new UserPrincipal(jwtService.extractUsername(token));
+                }
+            } catch (Exception e) {
+                // Handle token validation failure
+            }
         }
+        return null; // or handle invalid token scenario
+    }
+
+    private String extractToken(ServerHttpRequest request) {
+        String query = request.getURI().getQuery();
+        if (query != null) {
+            for (String param : query.split("&")) {
+                if (param.startsWith("token=")) {
+                    return param.split("=")[1];
+                }
+            }
+        }
+        return null;
     }
 }
